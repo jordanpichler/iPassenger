@@ -1,5 +1,6 @@
 package com.example.muki.helloworld;
 
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -24,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView mTextMessage;
     private Button startButton;
+    private PassengerReaderDbHelper database = new PassengerReaderDbHelper(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,8 +51,6 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected NodeList doInBackground(String... params) {
-           Log.i("hello", "asdflk");
-
             // or if you prefer DOM:
             String id = null;
 
@@ -59,8 +59,8 @@ public class MainActivity extends AppCompatActivity {
                 DocumentBuilder db = null;
                 db = dbf.newDocumentBuilder();
                 Document doc = db.parse(new URL("http://10.0.2.2:3161/devices").openStream());
-                id=doc.getElementsByTagName("id").item(0).getTextContent();
-                Log.i(id,"id");
+                id = doc.getElementsByTagName("id").item(0).getTextContent();
+                Log.i(id, "id");
                 URL commandURL = new URL("http://10.0.2.2:3161/devices/" + id);
                 URL startURL = new URL("http://10.0.2.2:3161/devices/" + id + "/start");
                 doc = db.parse(startURL.openStream());
@@ -68,11 +68,9 @@ public class MainActivity extends AppCompatActivity {
                 doc = db.parse(inventoryURL.openStream());
 
                 NodeList nodeList = doc.getElementsByTagName("epc");
-                for(int i=0 ; i< nodeList.getLength(); i++){
+                for (int i = 0; i < nodeList.getLength(); i++) {
                     Log.i("epc", nodeList.item(i).getTextContent());
-
                 }
-
 
                 Log.i(String.valueOf(commandURL), "devices");
                 Log.i(String.valueOf(startURL), "start");
@@ -93,13 +91,26 @@ public class MainActivity extends AppCompatActivity {
             // execution of result of Long time consuming operation
             Log.i("execute", "executing long async task now");
 
-            for(int i=0 ; i< nodeList.getLength(); i++){
+            for (int i = 0; i < nodeList.getLength(); i++) {
                 Log.i("epc", nodeList.item(i).getTextContent());
-                mTextMessage.setText("Passenger number: " + nodeList.item(0).getTextContent());
-            }
+                String raw = nodeList.item(i).getTextContent();
+                String epc = raw.substring(raw.length() - 1);
 
+                if (database != null) {
+                    Cursor c = database.getPassenger(epc);//epcSelected
+                    if (c.moveToFirst()) {
+                        do {
+                            System.out.println(c.getString(c.getColumnIndex("epc")));
+                            System.out.println(c.getString(c.getColumnIndex("firstname")));
+                            System.out.println(c.getString(c.getColumnIndex("lastname")));
+                            System.out.println(c.getString(c.getColumnIndex("skymilesstatus")));
+                        } while (c.moveToNext());
+                    }
+                    c.close();
+                    mTextMessage.setText("Passenger number: " + nodeList.item(0).getTextContent());
+                }
+
+            }
         }
     }
-
-
 }

@@ -35,9 +35,10 @@
             <TextView
                 android:id="@+id/info"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:text="Tap button above to identify passenger in this seat."
                 android:textAppearance="@android:style/TextAppearance.Material.Medium" />
+
         </LinearLayout>
 
     </FrameLayout>
